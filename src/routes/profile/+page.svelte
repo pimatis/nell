@@ -265,7 +265,7 @@
                 <Card.Root class="mb-6">
                     <Card.Header>
                         <Card.Title>Subscriptions</Card.Title>
-                        <Card.Description>You have {subscriptionCount} active subscription{subscriptionCount !== 1 ? 's' : ''}</Card.Description>
+                        <Card.Description>You can view and manage your active subscriptions by clicking the link below.</Card.Description>
                     </Card.Header>
                     <Card.Content>
                         <div class="flex items-center justify-between p-4 bg-secondary rounded-xl">
