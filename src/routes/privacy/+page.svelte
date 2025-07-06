@@ -1,10 +1,7 @@
 <script>
-    import Navbar from "../../components/Navbar.svelte";
-    import Footer from "../../components/Footer.svelte";
     import * as Card from "$lib/components/ui/card";
+    import Footer from "../../components/Footer.svelte";
 </script>
-
-<Navbar />
 
 <div class="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-4xl mx-auto">
@@ -12,7 +9,7 @@
         <div class="text-center mb-12">
             <h1 class="text-4xl font-bold mb-4">Privacy Policy</h1>
             <p class="text-lg opacity-80 max-w-2xl mx-auto">
-                Your privacy is important to us. This privacy policy explains how we collect, use, and protect your information when you use Nell.
+                Your privacy is important to us. This privacy policy explains our minimal data collection approach and how we protect your privacy when you use Nell.
             </p>
             <p class="text-sm opacity-60 mt-4">Last updated: July 6, 2025</p>
         </div>
@@ -28,24 +25,24 @@
                 </Card.Header>
                 <Card.Content class="space-y-4">
                     <div>
-                        <h3 class="font-semibold mb-2">Personal Information</h3>
+                        <h3 class="font-semibold mb-2">No Personal Information Collected</h3>
                         <p class="text-sm opacity-80">
-                            When you create an account, we collect your email address and any profile information you choose to provide. 
-                            This information is used to identify your account and provide personalized services.
+                            Nell does not require account creation or collect any personal information such as email addresses, names, or profile data. 
+                            Our service is designed to work completely anonymously without storing any user data.
                         </p>
                     </div>
                     <div>
-                        <h3 class="font-semibold mb-2">Usage Data</h3>
+                        <h3 class="font-semibold mb-2">Local Storage Only</h3>
                         <p class="text-sm opacity-80">
-                            We collect information about how you use our service, including your chat conversations, 
-                            model preferences, and interaction patterns. This helps us improve our AI models and user experience.
+                            All your chat conversations and preferences are stored locally in your browser only. 
+                            We do not have access to or store any of your chat history or personal conversations on our servers.
                         </p>
                     </div>
                     <div>
-                        <h3 class="font-semibold mb-2">Technical Information</h3>
+                        <h3 class="font-semibold mb-2">Minimal Technical Data</h3>
                         <p class="text-sm opacity-80">
-                            We automatically collect technical information such as your IP address, browser type, 
-                            device information, and usage analytics through PostHog to help us understand and improve our service.
+                            We only collect minimal technical information necessary for the service to function, 
+                            such as anonymous usage analytics to help us improve the service. No personal identifiers are collected.
                         </p>
                     </div>
                 </Card.Content>
@@ -61,24 +58,24 @@
                 </Card.Header>
                 <Card.Content class="space-y-4">
                     <div>
-                        <h3 class="font-semibold mb-2">Service Provision</h3>
+                        <h3 class="font-semibold mb-2">Anonymous Service Delivery</h3>
                         <p class="text-sm opacity-80">
-                            We use your information to provide, maintain, and improve our AI chat services, 
-                            including personalizing your experience and maintaining your chat history.
+                            Since we don't collect or store any personal information, our service operates completely anonymously. 
+                            Your conversations are processed in real-time without creating any permanent records.
                         </p>
                     </div>
                     <div>
-                        <h3 class="font-semibold mb-2">Communication</h3>
+                        <h3 class="font-semibold mb-2">AI Model Processing</h3>
                         <p class="text-sm opacity-80">
-                            We may use your email address to send you important service updates, 
-                            security notifications, and respond to your inquiries.
+                            Your chat messages are sent to AI service providers (such as OpenAI, Anthropic, etc.) to generate responses. 
+                            These messages are processed in real-time and are not permanently stored by us.
                         </p>
                     </div>
                     <div>
-                        <h3 class="font-semibold mb-2">Analytics and Improvement</h3>
+                        <h3 class="font-semibold mb-2">Service Improvement</h3>
                         <p class="text-sm opacity-80">
-                            We analyze usage patterns to improve our AI models, fix bugs, and enhance the user experience. 
-                            This includes analyzing conversation patterns to make our responses more helpful.
+                            We may use anonymous usage analytics to improve our service performance and user experience. 
+                            This data contains no personal identifiers and cannot be traced back to individual users.
                         </p>
                     </div>
                 </Card.Content>
@@ -94,24 +91,24 @@
                 </Card.Header>
                 <Card.Content class="space-y-4">
                     <div>
-                        <h3 class="font-semibold mb-2">Third-Party Services</h3>
+                        <h3 class="font-semibold mb-2">AI Service Providers</h3>
                         <p class="text-sm opacity-80">
-                            We use third-party services like PostHog for analytics and various AI model providers for chat functionality. 
-                            These services have their own privacy policies and we ensure they meet our privacy standards.
+                            Your chat messages are shared with third-party AI service providers (OpenAI, Anthropic, Google, etc.) 
+                            to generate responses. These providers have their own privacy policies and data handling practices.
                         </p>
                     </div>
                     <div>
-                        <h3 class="font-semibold mb-2">Legal Requirements</h3>
+                        <h3 class="font-semibold mb-2">No Data Storage or Sharing</h3>
                         <p class="text-sm opacity-80">
-                            We may disclose your information if required by law, court order, or to protect our rights, 
-                            property, or safety, or that of our users or others.
+                            We do not store, share, or sell any personal information because we don't collect any. 
+                            Your conversations exist only in your browser's local storage and in real-time processing.
                         </p>
                     </div>
                     <div>
-                        <h3 class="font-semibold mb-2">Business Transfers</h3>
+                        <h3 class="font-semibold mb-2">Legal Compliance</h3>
                         <p class="text-sm opacity-80">
-                            In the event of a merger, acquisition, or sale of assets, your information may be transferred 
-                            as part of the transaction. We will notify you of any such change.
+                            Since we don't collect or store personal data, we have no user information to disclose 
+                            even if legally required to do so.
                         </p>
                     </div>
                 </Card.Content>
@@ -127,18 +124,18 @@
                 </Card.Header>
                 <Card.Content class="space-y-4">
                     <p class="text-sm opacity-80">
-                        We implement appropriate technical and organizational measures to protect your personal information 
-                        against unauthorized access, alteration, disclosure, or destruction. This includes:
+                        Since we don't collect or store any personal information, there is minimal security risk. 
+                        However, we still implement security measures to protect our service:
                     </p>
                     <ul class="text-sm opacity-80 space-y-1 ml-4">
-                        <li>• Encryption of data in transit and at rest</li>
+                        <li>• Secure HTTPS connections for all communications</li>
                         <li>• Regular security audits and updates</li>
-                        <li>• Access controls and authentication measures</li>
-                        <li>• Secure hosting and database management</li>
+                        <li>• Secure API communications with AI service providers</li>
+                        <li>• No permanent data storage to minimize risk</li>
                     </ul>
                     <p class="text-sm opacity-80">
-                        However, no method of transmission over the internet or electronic storage is 100% secure. 
-                        While we strive to protect your information, we cannot guarantee absolute security.
+                        Your chat data is stored locally in your browser and is under your complete control. 
+                        You can clear this data at any time through your browser settings.
                     </p>
                 </Card.Content>
             </Card.Root>
@@ -153,24 +150,24 @@
                 </Card.Header>
                 <Card.Content class="space-y-4">
                     <div>
-                        <h3 class="font-semibold mb-2">Account Management</h3>
+                        <h3 class="font-semibold mb-2">Complete Control</h3>
                         <p class="text-sm opacity-80">
-                            You can update your account information, change your password, and manage your preferences 
-                            through your profile settings.
+                            Since all your data is stored locally in your browser, you have complete control over it. 
+                            You can clear your chat history and preferences at any time through your browser settings.
                         </p>
                     </div>
                     <div>
-                        <h3 class="font-semibold mb-2">Data Access and Deletion</h3>
+                        <h3 class="font-semibold mb-2">No Account Required</h3>
                         <p class="text-sm opacity-80">
-                            You can request access to your personal data, request corrections, or request deletion of your account 
-                            and associated data by contacting us through our contact form.
+                            Our service doesn't require account creation, so there's no personal information to manage, 
+                            update, or delete from our systems.
                         </p>
                     </div>
                     <div>
-                        <h3 class="font-semibold mb-2">Chat History</h3>
+                        <h3 class="font-semibold mb-2">Data Portability</h3>
                         <p class="text-sm opacity-80">
-                            You can delete individual chats or your entire chat history through the chat interface. 
-                            Deleted chats are permanently removed from our systems.
+                            Your chat data is stored in your browser's local storage and can be exported or transferred 
+                            using standard browser tools if needed.
                         </p>
                     </div>
                 </Card.Content>
@@ -186,16 +183,16 @@
                 </Card.Header>
                 <Card.Content class="space-y-4">
                     <p class="text-sm opacity-80">
-                        We use cookies and similar tracking technologies to enhance your experience:
+                        We use minimal cookies and tracking technologies only when necessary:
                     </p>
                     <ul class="text-sm opacity-80 space-y-1 ml-4">
-                        <li>• Essential cookies for authentication and security</li>
-                        <li>• Analytics cookies through PostHog to understand usage patterns</li>
-                        <li>• Preference cookies to remember your settings</li>
+                        <li>• Essential cookies for service functionality</li>
+                        <li>• Local storage for your chat history and preferences</li>
+                        <li>• Anonymous analytics to improve service performance</li>
                     </ul>
                     <p class="text-sm opacity-80">
-                        You can control cookie preferences through your browser settings, though disabling certain cookies 
-                        may affect the functionality of our service.
+                        You can control these settings through your browser preferences. Disabling them may affect 
+                        the functionality of our service, but no personal data will be lost.
                     </p>
                 </Card.Content>
             </Card.Root>
@@ -210,9 +207,9 @@
                 </Card.Header>
                 <Card.Content>
                     <p class="text-sm opacity-80">
-                        Our service is not intended for children under 13 years of age. We do not knowingly collect 
-                        personal information from children under 13. If we become aware that we have collected personal 
-                        information from a child under 13, we will take steps to delete such information.
+                        Our service is suitable for users of all ages since we don't collect any personal information. 
+                        However, we recommend parental supervision for children under 13 when using AI chat services 
+                        to ensure appropriate conversations.
                     </p>
                 </Card.Content>
             </Card.Root>
@@ -227,12 +224,12 @@
                 </Card.Header>
                 <Card.Content>
                     <p class="text-sm opacity-80">
-                        If you are accessing our service from outside the United States, please note that your information 
-                        may be transferred to, stored, and processed in the United States and other countries where our 
-                        service providers are located. By using our service, you consent to such transfer.
+                        Since we don't collect or store personal information, there is no user data to transfer internationally. 
+                        However, your chat messages are processed by AI service providers that may be located in different countries.
                     </p>
                     <p class="text-sm opacity-80 mt-2">
-                        If you are accessing our service from Turkey, please note that your information may be stored and processed in the United States and other countries where our service providers are located. By using our service, you consent to such data transfer.
+                        For users in Turkey and other countries, please note that AI processing may occur in the United States 
+                        or other countries where AI service providers operate. This processing is temporary and real-time only.
                     </p>
                 </Card.Content>
             </Card.Root>
@@ -247,9 +244,9 @@
                 </Card.Header>
                 <Card.Content>
                     <p class="text-sm opacity-80">
-                        We may update this privacy policy from time to time. We will notify you of any significant changes 
-                        by posting the new privacy policy on this page and updating the "Last updated" date. 
-                        Your continued use of our service after any changes constitutes your acceptance of the new privacy policy.
+                        We may update this privacy policy from time to time. Since we don't collect email addresses or 
+                        personal information, we'll notify you of any significant changes by posting the updated policy on this page 
+                        and updating the "Last updated" date. We recommend checking this page periodically for updates.
                     </p>
                 </Card.Content>
             </Card.Root>
@@ -269,9 +266,6 @@
                     <div class="bg-secondary/20 p-4 rounded-lg">
                         <p class="text-sm opacity-80">
                             <strong>Email:</strong> privacy@nell.org
-                        </p>
-                        <p class="text-sm opacity-80 mt-2">
-                            <strong>Contact Form:</strong> <a href="/contact" class="underline hover:opacity-100">Visit our contact page</a>
                         </p>
                     </div>
                     <p class="text-sm opacity-60">

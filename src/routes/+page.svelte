@@ -11,16 +11,10 @@
     import { onMount } from "svelte";
     import { goto } from "$app/navigation";
     import Vault from "../components/Vault.svelte";
+    import { ChatDB, type ChatHistory } from "$lib/db/chatdb";
+    import Footer from "../components/Footer.svelte";
 
-    interface ChatHistory {
-        id: string;
-        title: string;
-        messageCount: number;
-        lastMessage: string;
-        created: string;
-        updated: string;
-    }
-
+    const chatDB = new ChatDB();
     let messages: Array<{role: string, content: string}> = [];
     let input = '';
     let isLoading = false;
@@ -32,33 +26,13 @@
     let messagesEnd: HTMLElement;
     let isWebSearchActive = false;
     let messageElement: HTMLElement;
-    let isValid = false;
-    let currentChatId: string | null = null;
-    let chatHistory: ChatHistory[] = [];
-    let showChatHistory = false;
-    let isDeletingChat = false;
-    let isSharingChat = false;
-    let info: any;
     let currentThinkingMessage = "";
     let thinkingInterval: NodeJS.Timeout | null = null;
-    let showUpdatesDialog = false;
-    let updates: Array<{id: string, title: string, description: string, created: string}> = [];
     let quickActionsDropdownOpen = false;
-    let showPremiumDialog = false;
-    let defaultPrompts = [
-        {
-            title: "How does artificial intelligence work?",
-            prompt: "Can you explain how artificial intelligence works?"
-        },
-        {
-            title: "How many R's are there in strawberry?",
-            prompt: "How many R's are there in strawberry?"
-        },
-        {
-            title: "What should you do in a life-threatening situation?",
-            prompt: "What should you do in a life-threatening situation?"
-        }
-    ];
+    let showChatHistory = false;
+    let chatHistory: ChatHistory[] = [];
+    let currentChatId: string | null = null;
+    let isDeletingChat = false;
 
     $: filteredModels = models.filter(model =>
         model.name.toLowerCase().includes(modelSearchQuery.toLowerCase())
@@ -103,206 +77,99 @@
         return { __html: html };
     }
 
+    onMount(async () => {
+        try {
+            await chatDB.init();
+            await loadChatHistory();
+        } catch (error) {
+            console.error('Failed to initialize chat database:', error);
+        }
+    });
+
     const loadChatHistory = async () => {
         try {
-            const response = await fetch('/api/user/chats');
-            if (response.ok) {
-                const data = await response.json();
-                chatHistory = data.data || [];
-            } else {
-                console.error('Failed to load chat history');
-            }
+            chatHistory = await chatDB.getChats();
         } catch (error) {
-            console.error('Error loading chat history:', error);
+            console.error('Failed to load chat history:', error);
+        }
+    };
+
+    const saveCurrentChat = async () => {
+        if (messages.length === 0) return;
+
+        try {
+            const chatId = currentChatId || chatDB.generateChatId();
+            const title = chatDB.generateChatTitle(messages);
+            const lastMessage = messages[messages.length - 1]?.content || '';
+
+            const chatData: ChatHistory = {
+                id: chatId,
+                title,
+                messages: [...messages],
+                timestamp: Date.now(),
+                lastMessage: lastMessage.substring(0, 100)
+            };
+
+            await chatDB.saveChat(chatData);
+            currentChatId = chatId;
+            await loadChatHistory();
+        } catch (error) {
+            console.error('Failed to save chat:', error);
         }
     };
 
     const deleteChat = async (chatId: string) => {
+        if (!confirm('Are you sure you want to delete this chat?')) return;
+
         isDeletingChat = true;
         try {
-            const response = await fetch(`/api/user/chats?id=${chatId}`, {
-                method: 'DELETE'
-            });
-
-            if (response.ok) {
-                chatHistory = chatHistory.filter(chat => chat.id !== chatId);
-
-                if (currentChatId === chatId) {
-                    startNewChat();
-                }
-            } else {
-                console.error('Failed to delete chat');
+            await chatDB.deleteChat(chatId);
+            await loadChatHistory();
+            
+            if (currentChatId === chatId) {
+                startNewChat();
             }
         } catch (error) {
-            console.error('Error deleting chat:', error);
+            console.error('Failed to delete chat:', error);
         } finally {
             isDeletingChat = false;
         }
     };
 
     const deleteAllChats = async () => {
-        if (!confirm('Are you sure you want to delete all chat history? This action cannot be undone.')) {
-            return;
-        }
+        if (!confirm('Are you sure you want to delete all chat history? This action cannot be undone.')) return;
 
         isDeletingChat = true;
         try {
-            const deletePromises = chatHistory.map(chat => 
-                fetch(`/api/user/chats?id=${chat.id}`, {
-                    method: 'DELETE'
-                })
-            );
-
-            const responses = await Promise.all(deletePromises);
-            const allSuccess = responses.every(response => response.ok);
-
-            if (allSuccess) {
-                chatHistory = [];
-                startNewChat();
-            } else {
-                console.error('Failed to delete some chats');
-                alert('Some chats could not be deleted. Please try again.');
-            }
+            await chatDB.clearAllChats();
+            chatHistory = [];
+            startNewChat();
         } catch (error) {
-            console.error('Error deleting all chats:', error);
-            alert('Failed to delete all chats. Please try again.');
+            console.error('Failed to delete all chats:', error);
         } finally {
             isDeletingChat = false;
         }
     };
 
-    const shareChat = async (chatId: string) => {
+    const loadChat = async (chatId: string) => {
         try {
-            isSharingChat = true;
-
-            const response = await fetch('/api/chat/share', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ chatId })
-            });
-
-            const result = await response.json();
-
-            if (!response.ok) {
-                throw new Error(result.error || 'Failed to share chat');
-            }
-
-            const shareUrl = `${window.location.origin}${result.shareUrl}`;
-            await navigator.clipboard.writeText(shareUrl);
-
-            alert('Chat shared successfully! Link copied to clipboard.');
-
-        } catch (error) {
-            console.error('Error sharing chat:', error);
-            alert('Failed to share chat. Please try again.');
-            } finally {
-                isSharingChat = false;
-            }
-        };
-
-        const loadChat = async (chatId: string) => {
-        try {
-            const response = await fetch('/api/user/chats', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ chatId })
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                const chatData = data.data;
-
+            const chat = chatHistory.find(c => c.id === chatId);
+            if (chat) {
+                messages = [...chat.messages];
                 currentChatId = chatId;
-
-                if (chatData.messages && Array.isArray(chatData.messages)) {
-                    messages = [...chatData.messages];
-                } else {
-                    messages = [];
-                }
-
                 showChatHistory = false;
-
+                
                 setTimeout(() => {
                     messagesEnd?.scrollIntoView({ behavior: 'smooth' });
                 }, 200);
-
-            } else {
-                const errorData = await response.json();
-                console.error('Failed to load chat:', errorData);
             }
         } catch (error) {
-            console.error('Error loading chat:', error);
+            console.error('Failed to load chat:', error);
         }
-    };
-
-    const debugChat = async () => {
-        try {
-            const response = await fetch('/api/user/chats');
-            const data = await response.json();
-
-            if (data.data.length > 0) {
-                const firstChat = data.data[0];
-
-                const chatResponse = await fetch('/api/user/chats', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ chatId: firstChat.id })
-                });
-
-                const chatData = await chatResponse.json();
-            }
-        } catch (error) {
-            console.error('Debug error:', error);
-        }
-    };
-
-    onMount(async () => {
-        const res = await fetch("/api/user/valid");
-        const data = await res.json();
-        isValid = data.data;
-
-        const infoRes = await fetch("/api/user/info");
-        const infoData = await infoRes.json();
-        info = infoData.data;
-
-        if (!isValid) {
-            goto("/login");
-        } else {
-            await loadChatHistory();
-            setTimeout(debugChat, 1000);
-        }
-    });
-
-    const loadUpdates = async () => {
-        try {
-            const response = await fetch('/api/updates');
-            if (response.ok) {
-                const data = await response.json();
-                updates = data.data || [];
-            } else {
-                console.error('Failed to load updates');
-            }
-        } catch (error) {
-            console.error('Error loading updates:', error);
-        }
-    };
-
-    const canUseChat = () => {
-        if (!info) return false;
-        return info.accountType === 'Premium' && info.verified && info.usageCount < info.limit;
     };
 
     const handleSubmit = async () => {
         if (!input.trim() || isLoading) return;
-
-        if (!canUseChat()) {
-            showPremiumDialog = true;
-            return;
-        }
 
         if (isWebSearchActive) {
             await handleSearch();
@@ -328,8 +195,7 @@
                 },
                 body: JSON.stringify({
                     model: selectedModel.id,
-                    messages: messages.slice(0, -1),
-                    chatId: currentChatId
+                    messages: messages.slice(0, -1)
                 })
             });
 
@@ -339,13 +205,10 @@
 
             const data = await response.json();
 
-            if (data.chatId) {
-                currentChatId = data.chatId;
-                await loadChatHistory();
-            }
-
             stopThinkingAnimation();
             messages = [...messages.slice(0, -1), { role: 'assistant', content: data.choices[0].message.content }];
+            
+            await saveCurrentChat();
         } catch (e) {
             stopThinkingAnimation();
             const errorMessage = 'An error occurred while processing your message.';
@@ -358,11 +221,6 @@
 
     const handleSearch = async () => {
         if (!input.trim() || isLoading) return;
-
-        if (!canUseChat()) {
-            showPremiumDialog = true;
-            return;
-        }
 
         const userMessage = { role: 'user', content: input };
         messages = [...messages, userMessage];
@@ -383,8 +241,7 @@
                 },
                 body: JSON.stringify({
                     model: searchModel,
-                    messages: messages.slice(0, -1),
-                    chatId: currentChatId
+                    messages: messages.slice(0, -1)
                 })
             });
 
@@ -394,13 +251,10 @@
 
             const data = await response.json();
 
-            if (data.chatId) {
-                currentChatId = data.chatId;
-                await loadChatHistory();
-            }
-
             stopThinkingAnimation();
             messages = [...messages.slice(0, -1), { role: 'assistant', content: data.choices[0].message.content }];
+            
+            await saveCurrentChat();
         } catch (e) {
             stopThinkingAnimation();
             const errorMessage = 'An error occurred while processing your message.';
@@ -409,7 +263,7 @@
         } finally {
             isLoading = false;
         }
-    }
+    };
 
     const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -430,6 +284,12 @@
         }
     };
 
+    $: if (messages.length > 0) {
+        setTimeout(() => {
+            messagesEnd?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+    }
+
     const startNewChat = () => {
         stopThinkingAnimation();
         messages = [];
@@ -437,13 +297,15 @@
         input = '';
         error = null;
         isLoading = false;
+        showChatHistory = false;
     };
 
-    $: if (messages.length > 0) {
-        setTimeout(() => {
-            messagesEnd?.scrollIntoView({ behavior: 'smooth' });
-        }, 100);
-    }
+    const defaultPrompts = [
+        { title: "Explain a complex topic", prompt: "Explain quantum computing in simple terms" },
+        { title: "Write code", prompt: "Write a Python function to calculate fibonacci numbers" },
+        { title: "Creative writing", prompt: "Write a short story about a time traveler" },
+        { title: "Problem solving", prompt: "Help me organize my daily schedule" }
+    ];
 </script>
 
 <div class="flex flex-col h-screen w-full">
@@ -452,21 +314,13 @@
         <div class="w-full max-w-6xl mx-auto px-4 py-4 space-y-4">
             <!-- Desktop/Tablet: Inline buttons -->
             <div class="hidden md:flex justify-center gap-2 mb-4">
-                <Button variant="outline" size="sm" onclick={() => { showUpdatesDialog = true; loadUpdates(); }}>
-                    <i class="ri-notification-line"></i>
-                    Updates
-                </Button>
                 <Button variant="outline" size="sm" onclick={startNewChat}>
                     <i class="ri-add-line"></i>
                     New Chat
                 </Button>
                 <Button variant="outline" size="sm" onclick={() => { showChatHistory = true; loadChatHistory(); }}>
-                    <i class="ri-time-line"></i>
+                    <i class="ri-history-line"></i>
                     History
-                </Button>
-                <Button variant="outline" size="sm" onclick={() => { goto('/profile') }}>
-                    <i class="ri-user-line"></i>
-                    Profile
                 </Button>
             </div>
 
@@ -480,27 +334,20 @@
                         </Button>
                     </DropdownMenu.Trigger>
                     <DropdownMenu.Content>
-                        <DropdownMenu.Item onclick={() => { showUpdatesDialog = true; loadUpdates(); }}>
-                            <i class="ri-notification-line mr-2"></i>
-                            Updates
-                        </DropdownMenu.Item>
                         <DropdownMenu.Item onclick={startNewChat}>
                             <i class="ri-add-line mr-2"></i>
                             New Chat
                         </DropdownMenu.Item>
                         <DropdownMenu.Item onclick={() => { showChatHistory = true; loadChatHistory(); }}>
-                            <i class="ri-time-line mr-2"></i>
+                            <i class="ri-history-line mr-2"></i>
                             History
-                        </DropdownMenu.Item>
-                        <DropdownMenu.Item onclick={() => { goto('/profile') }}>
-                            <i class="ri-user-line mr-2"></i>
-                            Profile
                         </DropdownMenu.Item>
                     </DropdownMenu.Content>
                 </DropdownMenu.Root>
             </div>
             {#if messages.length === 0}
             <div class="flex flex-col items-center justify-center h-[60vh] text-center px-4">
+                <img src="https://www.upload.ee/image/18296072/nell-mascot-whitee.png" alt="Nell Logo" class="w-16 mb-4" />
                 <h2 class="text-2xl font-semibold mb-1">Ask Nell anything</h2>
                 <p class="text-sm opacity-80">Your AI assistant powered by multiple models</p>
                 <div class="flex flex-col sm:flex-col md:flex-col lg:flex-row gap-4 text-xs mt-6">
@@ -653,110 +500,70 @@
     </div>
 </div>
 
-<!-- Updates Dialog -->
-<Dialog.Root bind:open={showUpdatesDialog}>
-    <Dialog.Content class="max-w-2xl max-h-[80vh]">
-        <Dialog.Header>
-            <Dialog.Title>Updates & Announcements</Dialog.Title>
-            <Dialog.Description>
-                Latest updates and announcements from the Nell team.
-            </Dialog.Description>
-        </Dialog.Header>
+<!-- Chat History Vault -->
+<Vault bind:isOpen={showChatHistory} on:close={() => showChatHistory = false}>
+    <div class="space-y-4">
+        <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold">Chat History</h3>
+        </div>
 
-        <ScrollArea class="h-[400px] w-full">
-            <div class="space-y-4">
-                {#if updates.length === 0}
+        <div class="flex items-center justify-between mb-4">
+            <div class="text-sm opacity-50">
+                {chatHistory.length} conversation{chatHistory.length !== 1 ? 's' : ''} found
+            </div>
+            {#if chatHistory.length > 0}
+                <Button variant="outline" size="sm" class="text-destructive hover:text-destructive" onclick={deleteAllChats} disabled={isDeletingChat}>
+                    <i class="ri-delete-bin-line mr-2"></i>
+                    Delete All
+                </Button>
+            {/if}
+        </div>
+
+        <ScrollArea class="h-[300px] w-full">
+            <div class="space-y-2">
+                {#if chatHistory.length === 0}
                     <div class="text-center py-8 opacity-50">
-                        <p>No updates available</p>
+                        <i class="ri-message-3-line text-4xl mb-4"></i>
+                        <p>No chat history yet</p>
+                        <p class="text-sm">Start a conversation to see your history here</p>
                     </div>
                 {:else}
-                    {#each updates as update}
-                        <div class="p-4 rounded-lg bg-secondary">
-                            <h4 class="font-medium text-sm mb-2">{update.title}</h4>
-                            <div class="text-xs opacity-50 mb-3">
-                                {new Date(update.created).toLocaleDateString('en-US', { 
-                                    year: 'numeric', 
-                                    month: 'long', 
-                                    day: 'numeric' 
-                                })}
-                            </div>
-                            <div class="prose prose-sm max-w-none">
-                                {@html update.description}
+                    {#each chatHistory as chat}
+                        <div class="p-4 rounded-lg cursor-pointer bg-secondary/50 transition-all hover:bg-secondary" on:click={() => loadChat(chat.id)} on:keydown={(e) => e.key === 'Enter' && loadChat(chat.id)} role="button" tabindex="0">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <h4 class="font-medium text-sm truncate">{chat.title}</h4>
+                                    </div>
+                                    <p class="text-xs text-muted-foreground truncate mb-2">{chat.lastMessage}</p>
+                                    <div class="flex items-center gap-2 text-xs text-muted-foreground">
+                                        <i class="ri-time-line"></i>
+                                        {new Date(chat.timestamp).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                        <span class="mx-1">•</span>
+                                        <i class="ri-message-2-line"></i>
+                                        {chat.messages.length} message{chat.messages.length !== 1 ? 's' : ''}
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-1 ml-2">
+                                    {#if currentChatId === chat.id}
+                                        <div class="px-2 py-1 rounded-full bg-secondary text-xs">
+                                            Current
+                                        </div>
+                                    {/if}
+                                    <Button variant="ghost" size="icon" class="h-8 w-8 text-destructive/70 hover:text-destructive" 
+                                            onclick={(e) => { e.stopPropagation(); deleteChat(chat.id); }} 
+                                            disabled={isDeletingChat} 
+                                            title="Delete chat">
+                                        <i class="ri-delete-bin-line"></i>
+                                    </Button>
+                                </div>
                             </div>
                         </div>
                     {/each}
                 {/if}
             </div>
         </ScrollArea>
-
-        <Dialog.Footer class="mt-4">
-            <Dialog.Close>
-                <Button variant="secondary">Close</Button>
-            </Dialog.Close>
-        </Dialog.Footer>
-    </Dialog.Content>
-</Dialog.Root>
-
-<!-- Chat History Bottom Sheet -->
-<!-- svelte-ignore a11y_click_events_have_key_events -->
-<!-- svelte-ignore a11y_no_static_element_interactions -->
-<!-- svelte-ignore element_invalid_self_closing_tag -->
-<Vault isOpen={showChatHistory} on:close={() => showChatHistory = false}>
-    <div class="space-y-4">
-        <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold">Chat History</h3>
-            {#if chatHistory.length > 0}
-                <Button variant="outline" size="sm" class="text-destructive/70 hover:text-destructive" onclick={deleteAllChats} disabled={isDeletingChat} title="Delete all chats">
-                    <i class="ri-delete-bin-line mr-1"></i>
-                    Delete All
-                </Button>
-            {/if}
-        </div>
-
-        {#if chatHistory.length === 0}
-            <div class="text-center py-8 opacity-50">
-                <p>No chat history yet</p>
-            </div>
-        {:else}
-            <div class="space-y-2 max-h-[60vh] overflow-y-auto">
-                {#each chatHistory as chat}
-                    <div class={`p-3 rounded-lg hover:bg-accent/20 cursor-pointer transition-colors flex justify-between items-center ${currentChatId === chat.id ? 'bg-accent/50' : ''}`} on:click={() => { loadChat(chat.id); showChatHistory = false; }}>
-                        <div class="flex-1 min-w-0">
-                            <p class="font-medium truncate">{chat.title}</p>
-                            <p class="text-xs opacity-50 truncate">{chat.lastMessage}</p>
-                        </div>
-                        <div class="flex items-center gap-1">
-                            <Button variant="outline" size="icon" class="h-8 w-8 text-blue-500/70 hover:text-blue-500" onclick={(e) => { e.stopPropagation(); shareChat(chat.id); }} disabled={isSharingChat} title="Share chat">
-                                <i class="ri-share-line" />
-                            </Button>
-                            <Button variant="outline" size="icon" class="h-8 w-8 text-destructive/70 hover:text-destructive" onclick={(e) => { e.stopPropagation(); deleteChat(chat.id); }} disabled={isDeletingChat} title="Delete chat">
-                                <i class="ri-delete-bin-line" />
-                            </Button>
-                        </div>
-                    </div>
-                {/each}
-            </div>
-        {/if}
     </div>
 </Vault>
 
-<!-- Premium Account Required Dialog -->
-<Dialog.Root bind:open={showPremiumDialog}>
-    <Dialog.Content class="max-w-md">
-        <Dialog.Header>
-            <Dialog.Title>Premium Account Required</Dialog.Title>
-            <Dialog.Description>
-                You need to have a Premium account and verify your email address to use this chat feature!
-            </Dialog.Description>
-        </Dialog.Header>
-
-        <Dialog.Footer class="mt-4 flex gap-2">
-            <Dialog.Close>
-                <Button variant="secondary">Cancel</Button>
-            </Dialog.Close>
-            <Button onclick={() => { showPremiumDialog = false; goto('/profile'); }}>
-                Go to Profile
-            </Button>
-        </Dialog.Footer>
-    </Dialog.Content>
-</Dialog.Root>
+<Footer />

@@ -1,36 +1,40 @@
 # Nell
 
-A modern, full-stack AI chat platform that provides unified access to multiple AI providers through a single interface. Built with SvelteKit, TailwindCSS, and PocketBase, offering a seamless experience for AI interactions with features like chat management, user authentication, and subscription handling.
+A modern, anonymous AI chat platform that provides unified access to multiple AI providers through a single interface. Built with SvelteKit and TailwindCSS, offering a seamless and privacy-focused experience for AI interactions with local chat management and no data collection.
 
 ## 🚀 Features
 
 ### Core Features
 - **Multi-AI Provider Support**: Access to GPT-4, Claude 3.5, Gemini, DeepSeek, and more through a unified interface
-- **Real-time Chat Interface**: Modern chat UI with markdown support and message history
-- **User Authentication**: Complete auth system with registration, login, and profile management
-- **Subscription Management**: Integrated payment system with Polar.sh for premium features
-- **Chat History**: Save, manage, and share chat conversations
+- **Anonymous Usage**: No account creation or personal data collection required
+- **Real-time Chat Interface**: Modern chat UI with markdown support and local message history
+- **Local Data Storage**: All chat history stored locally in your browser using IndexedDB
+- **Web Search Integration**: Enhanced AI responses with web search capabilities
+- **Model Selection**: Choose from multiple AI models for different tasks
 - **Responsive Design**: Mobile-first design that works on all devices
+
+### Privacy Features
+- **Complete Anonymity**: No user registration, email collection, or personal data storage
+- **Local Storage Only**: Chat history never leaves your browser
+- **No Tracking**: Minimal analytics, no personal identifiers
+- **GDPR Compliant**: Privacy by design with no data collection
 
 ### Technical Features
 - **Modern Tech Stack**: SvelteKit 2.0, TypeScript, TailwindCSS 4.0
-- **Database**: PocketBase for backend services
+- **Client-Side Database**: IndexedDB for local chat storage
 - **UI Components**: shadcn/ui components adapted for Svelte
-- **Analytics**: PostHog integration for user analytics
-- **Email Service**: Resend integration for transactional emails
+- **Real-time Processing**: Direct API communication with AI providers
 - **Rate Limiting**: Built-in API rate limiting
 
 ## 🛠️ Technology Stack
 
 - **Frontend**: SvelteKit 2.0, TypeScript, TailwindCSS 4.0
-- **Backend**: PocketBase, Node.js API routes
-- **Database**: PocketBase (SQLite-based)
-- **Authentication**: PocketBase Auth
-- **Payments**: Polar.sh
-- **Analytics**: PostHog
-- **Email**: Resend
+- **Data Storage**: IndexedDB (client-side only)
+- **AI Integration**: Multiple AI provider APIs
 - **Styling**: TailwindCSS with shadcn/ui components
 - **Icons**: Lucide Icons, Remix Icons
+- **Build Tool**: Vite
+- **Package Manager**: Bun/npm/yarn
 
 ## 📋 Prerequisites
 
@@ -71,32 +75,15 @@ bun install
 Create a `.env` file in the root directory and configure the following environment variables:
 
 ```env
-# PocketBase Configuration
-VITE_APP_PBURL=your_pocketbase_url
-
-# API Configuration
-VITE_APP_API_URL=your_api_endpoint
-
-# Polar.sh Configuration (for payments)
-VITE_APP_POLARSH_URL=https://sandbox-api.polar.sh
-VITE_APP_ORGANIZATION_ID=your_polar_organization_id
-VITE_APP_POLAR_KEY=your_polar_api_key
-VITE_APP_POLAR_URL=https://sandbox-api.polar.sh
-
-# Resend Configuration (for emails)
-VITE_APP_RESEND_KEY=your_resend_api_key
-
-# PostHog Configuration (for analytics)
-VITE_APP_POSTHOG_KEY=your_posthog_key
+VITE_APP_API_KEY=your_api_key_here
+VITE_APP_API_URL=https://api.example.com
 ```
 
-### 4. Database Setup
+**Note**: This project is designed to work without server-side configuration. All chat data is stored locally in your browser.
 
-This project uses PocketBase as the backend. You'll need to:
+### 4. Setup Complete
 
-1. Set up a PocketBase instance (locally or hosted)
-2. Configure the database collections for users, chats, and subscriptions
-3. Update the `VITE_APP_PBURL` in your `.env` file
+That's it! No database setup, no backend configuration, no external services required. The application works completely client-side with local storage.
 
 ## 🚀 Development
 
@@ -110,51 +97,42 @@ This will start the development server at `http://localhost:5173`
 
 ## 🔑 Key Features Explanation
 
-### AI Provider Integration
-The platform supports multiple AI providers through a unified API:
+### Anonymous AI Chat Platform
+The platform provides access to multiple AI providers without requiring any personal information:
 - GPT-4 variants (GPT-4, GPT-4o, GPT-4o Mini)
 - Claude models (Claude 3.5 Sonnet, Claude 3.5 Haiku)
 - Google Gemini models
 - DeepSeek models
 - And more...
 
-### Authentication System
-- User registration and login
-- Email verification
-- Password reset functionality
-- Profile management
-- Session management
+### Privacy-First Design
+- **No Account Required**: Start chatting immediately without registration
+- **Local Storage Only**: All chat history stored in your browser's IndexedDB
+- **No Data Collection**: Zero personal information collected or stored
+- **Anonymous Usage**: No tracking, no analytics of personal data
 
-### Subscription Management
-- Integration with Polar.sh for payments
-- Free and premium tiers
-- Usage tracking and limits
-- Subscription status management
+### Chat Management
+- **Local Chat History**: Save and manage conversations locally
+- **Chat Organization**: Organize conversations with automatic titles
+- **Export/Import**: Full control over your chat data
+- **Cross-Session Persistence**: Chat history persists across browser sessions
 
-### Chat Features
-- Real-time messaging interface
-- Message history and persistence
-- Chat sharing functionality
-- Markdown rendering support
-- Multiple model selection
+### Web Search Integration
+- **Enhanced Responses**: AI responses enhanced with real-time web search
+- **Current Information**: Get up-to-date information from the web
+- **Seamless Integration**: Toggle web search on/off per conversation
 
 ## 🌐 API Endpoints
 
-### Authentication
-- `POST /api/user/register` - User registration
-- `POST /api/user/login` - User login
-- `POST /api/user/logout` - User logout
-- `GET /api/user/valid` - Check auth status
+### Chat API
+- `POST /api/chat` - Process chat messages with AI providers
 
-### Chat Management
-- `POST /api/chat` - Create new chat
-- `GET /api/chat/[id]` - Get chat by ID
-- `POST /api/chat/[id]/share` - Share chat
+### Static Pages
+- `/` - Main chat interface
+- `/privacy` - Privacy policy
+- `/terms` - Terms of service
 
-### User Management
-- `GET /api/user/info` - Get user profile
-- `POST /api/user/delete` - Delete account
-- `POST /api/user/password/reset` - Reset password
+**Note**: This is a client-side application with minimal server-side API endpoints. Most functionality is handled in the browser.
 
 ## 🚀 Deployment
 
@@ -174,11 +152,13 @@ bun run preview
 
 The project uses `@sveltejs/adapter-auto` which automatically detects your deployment environment. It supports:
 
-- **Vercel**
+- **Vercel** (recommended)
 - **Netlify**
 - **Cloudflare Pages**
-- **Node.js**
-- **Static hosting**
+- **GitHub Pages**
+- **Any static hosting service**
+
+**Note**: Since this is a client-side application, it can be deployed to any static hosting service. No server-side configuration is required.
 
 ## 🤝 Contributing
 
@@ -196,12 +176,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 For support, please:
 - Open an issue on GitHub
-- Contact the development team
+- Visit our website for documentation
+- Check the privacy policy and terms of service for more information
 
 ## 🙏 Acknowledgments
 
 - Built with [SvelteKit](https://kit.svelte.dev/)
 - UI components from [shadcn/ui](https://ui.shadcn.com/)
 - Icons from [Lucide](https://lucide.dev/) and [Remix Icon](https://remixicon.com/)
-- Backend powered by [PocketBase](https://pocketbase.io/)
-- Payment processing by [Polar.sh](https://polar.sh/)
+- Privacy-first design inspired by modern web standards

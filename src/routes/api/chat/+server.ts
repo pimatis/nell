@@ -1,5 +1,4 @@
 import type { RequestHandler } from "@sveltejs/kit";
-import db from "$lib/db/connect/main";
 import { HttpsProxyAgent } from 'https-proxy-agent';
 
 function shuffleArray<T>(array: T[]): T[] {
@@ -104,15 +103,7 @@ async function makeAPIRequestWithRetries(url: string, options: RequestInit, maxR
 
 export const POST: RequestHandler = async ({ request }) => {
     try {
-        const { messages, model, chatId } = await request.json();
-        const user = db.authStore.model;
-
-        if (!db.authStore.isValid || !user) {
-            return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
-        }
-        if (user.usageCount >= user.limit) {
-            return new Response(JSON.stringify({ error: "Usage limit reached" }), { status: 403 });
-        }
+        const { messages, model } = await request.json();
 
         const data = await makeAPIRequestWithRetries(import.meta.env.VITE_APP_API_URL, {
             method: 'POST',
@@ -127,28 +118,8 @@ export const POST: RequestHandler = async ({ request }) => {
         if (!aiResponse) {
             throw new Error("API response did not contain a message.");
         }
-        const updatedMessages = [...messages, aiResponse];
-        let currentChatId = chatId;
-
-        await db.collection("users").update(user.id, {
-            "usageCount+": 1
-        });
-
-        if (chatId) {
-            await db.collection("chats").update(chatId, {
-                chat: JSON.stringify(updatedMessages)
-            });
-        } else {
-            const newChat = await db.collection("chats").create({
-                title: generateChatTitle(messages[0]?.content || "New Chat"),
-                user: user.id,
-                chat: JSON.stringify(updatedMessages)
-            });
-            currentChatId = newChat.id;
-        }
 
         return new Response(JSON.stringify({
-            chatId: currentChatId,
             model: data.model,
             choices: data.choices,
             usage: data.usage
@@ -171,11 +142,4 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 };
 
-function generateChatTitle(firstMessage: string): string {
-    const maxLength = 50;
-    const trimmedMessage = firstMessage.trim();
-    if (trimmedMessage.length <= maxLength) {
-        return trimmedMessage;
-    }
-    return trimmedMessage.substring(0, maxLength - 3) + "...";
-}
+

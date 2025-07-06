@@ -1,20 +1,7 @@
 <script lang="ts">
 	import '../app.css';
-    import posthog from "posthog-js";
-    import { browser } from '$app/environment';
-    import { onMount } from 'svelte';
 
 	let { children } = $props();
-
-    onMount(() => {
-        if (browser) {
-            posthog.init(import.meta.env.VITE_APP_POSTHOG_KEY, {
-                api_host: 'https://us.i.posthog.com',
-                defaults: '2025-05-24',
-                person_profiles: 'always'
-            })
-        }
-    });
 </script>
 
 {@render children()}
@@ -28,6 +15,6 @@
         padding: 0;
         justify-content: center;
         background-color: #120f15;
-        color: #ffffffc4;
+        color: #ffffff;
     }
 </style>
