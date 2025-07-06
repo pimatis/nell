@@ -20,7 +20,7 @@ A modern, anonymous AI chat platform that provides unified access to multiple AI
 - **GDPR Compliant**: Privacy by design with no data collection
 
 ### Technical Features
-- **Modern Tech Stack**: SvelteKit 2.0, TypeScript, TailwindCSS 4.0
+- **Modern Tech Stack**: SvelteKit, TypeScript, TailwindCSS
 - **Client-Side Database**: IndexedDB for local chat storage
 - **UI Components**: shadcn/ui components adapted for Svelte
 - **Real-time Processing**: Direct API communication with AI providers
@@ -28,7 +28,7 @@ A modern, anonymous AI chat platform that provides unified access to multiple AI
 
 ## 🛠️ Technology Stack
 
-- **Frontend**: SvelteKit 2.0, TypeScript, TailwindCSS 4.0
+- **Frontend**: SvelteKit, TypeScript, TailwindCSS
 - **Data Storage**: IndexedDB (client-side only)
 - **AI Integration**: Multiple AI provider APIs
 - **Styling**: TailwindCSS with shadcn/ui components

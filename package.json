@@ -30,15 +30,9 @@
 		"vite": "^6.2.6"
 	},
 	"dependencies": {
-		"@polar-sh/sdk": "^0.34.3",
-		"@types/uuid": "^10.0.0",
 		"axios": "^1.10.0",
 		"cross-fetch": "^4.1.0",
 		"https-proxy-agent": "^7.0.6",
-		"lucide-svelte": "^0.525.0",
-		"pocketbase": "^0.26.1",
-		"posthog-js": "^1.256.1",
-		"resend": "^4.6.0",
-		"vaul-svelte": "^0.3.2"
+		"lucide-svelte": "^0.525.0"
 	}
 }
