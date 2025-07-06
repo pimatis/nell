@@ -12,7 +12,6 @@
     import { goto } from "$app/navigation";
     import Vault from "../components/Vault.svelte";
     import { ChatDB, type ChatHistory } from "$lib/db/chatdb";
-    import Footer from "../components/Footer.svelte";
 
     const chatDB = new ChatDB();
     let messages: Array<{role: string, content: string}> = [];
@@ -322,6 +321,14 @@
                     <i class="ri-history-line"></i>
                     History
                 </Button>
+                <Button variant="outline" size="sm" onclick={() => goto('/terms')}>
+                    <i class="ri-file-text-line"></i>
+                    Terms
+                </Button>
+                <Button variant="outline" size="sm" onclick={() => goto('/privacy')}>
+                    <i class="ri-shield-check-line"></i>
+                    Privacy
+                </Button>
             </div>
 
             <!-- Mobile: Dropdown menu -->
@@ -341,6 +348,14 @@
                         <DropdownMenu.Item onclick={() => { showChatHistory = true; loadChatHistory(); }}>
                             <i class="ri-history-line mr-2"></i>
                             History
+                        </DropdownMenu.Item>
+                        <DropdownMenu.Item onclick={() => goto('/terms')}>
+                            <i class="ri-file-text-line mr-2"></i>
+                            Terms
+                        </DropdownMenu.Item>
+                        <DropdownMenu.Item onclick={() => goto('/privacy')}>
+                            <i class="ri-shield-check-line mr-2"></i>
+                            Privacy
                         </DropdownMenu.Item>
                     </DropdownMenu.Content>
                 </DropdownMenu.Root>
@@ -565,5 +580,3 @@
         </ScrollArea>
     </div>
 </Vault>
-
-<Footer />
