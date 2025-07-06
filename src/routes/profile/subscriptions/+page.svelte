@@ -38,17 +38,17 @@
                 body: JSON.stringify({ subscriptionId })
             });
 
+            if (!response.ok) {
+                throw new Error('Failed to cancel subscription');
+            }
+
             await fetch("/api/user/profile/limit", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ option: "downgrade" })
             });
-            
-            if (!response.ok) {
-                throw new Error('Failed to cancel subscription');
-            }
 
-            window.location.reload();
+            goto("/profile?refresh=true");
         } catch (err) {
             error = "Failed to cancel subscription. Please try again.";
             console.error('Subscription cancellation error:', err);

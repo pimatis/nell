@@ -157,11 +157,15 @@ export const POST: RequestHandler = async ({ request }) => {
             headers: { "Content-Type": "application/json" }
         });
 
-    } catch (error) {
+    } catch (error: any) {
+        console.error('Chat processing error:', error);
+        const errorMessage = error?.response?.message || error?.message || 'An unexpected error occurred while processing your request.';
+        const statusCode = error?.response?.status || 500;
+        
         return new Response(JSON.stringify({
-            error: 'An unexpected error occurred while processing your request.'
+            error: errorMessage
         }), {
-            status: 500,
+            status: statusCode,
             headers: { "Content-Type": "application/json" }
         });
     }

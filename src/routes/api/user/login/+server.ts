@@ -19,7 +19,13 @@ export const POST: RequestHandler = async ({ request }) => {
       );
     }
 
-    const res = await db.collection("users").authWithPassword(email, password);
+    const res = await db.collection("users").authWithPassword(email, password).catch((error) => {
+      console.error('Login error:', error);
+      return new Response(JSON.stringify({ error: "Failed to login user." }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
+    });
 
     return new Response(
       JSON.stringify({
@@ -29,8 +35,12 @@ export const POST: RequestHandler = async ({ request }) => {
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
   } catch (e: any) {
-    return new Response(JSON.stringify({ error: e.response.message }), {
-      status: e.response.status,
+    console.error('Login error:', e);
+    const errorMessage = e?.response?.message || e?.message || 'An unexpected error occurred during login.';
+    const statusCode = e?.response?.status || 500;
+    
+    return new Response(JSON.stringify({ error: errorMessage }), {
+      status: statusCode,
       headers: { "Content-Type": "application/json" },
     });
   }

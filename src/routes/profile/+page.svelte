@@ -2,11 +2,12 @@
     import Navbar from "../../components/Navbar.svelte";
     import Footer from "../../components/Footer.svelte";
     import { goto } from "$app/navigation";
-    import { onMount } from "svelte";
+    import { onMount, onDestroy } from "svelte";
     import * as Card from "$lib/components/ui/card";
     import Button from "$lib/components/ui/button/button.svelte";
     import { Input } from "$lib/components/ui/input";
     import * as Dialog from "$lib/components/ui/dialog";
+    import { page } from "$app/stores";
     import db from "$lib/db/connect/main";
 
     interface User {
@@ -31,6 +32,26 @@
     let subscriptions: any = null;
     let subscriptionId = "";
     let subscriptionCount = 0;
+    let isUpgradeLoading = false;
+    let checkoutId: string | null = null;
+    let checkoutInterval: any | null = null;
+
+    async function loadUserData() {
+        try {
+            const res = await fetch("/api/user/info");
+            const data = await res.json();
+            user = data.data;
+
+            const subscriptionRes = await fetch("/api/user/subscriptions/get");
+            if (subscriptionRes.ok) {
+                const subscriptionData = await subscriptionRes.json();
+                subscriptions = subscriptionData.data.result.items || [];
+                subscriptionCount = subscriptions.length;
+            }
+        } catch (err) {
+            console.error('Failed to load user data:', err);
+        }
+    }
 
     onMount(async () => {
         isLoading = true;
@@ -42,21 +63,20 @@
             if (!isValid) {
                 goto("/login");
             } else {
-                const res = await fetch("/api/user/info");
-                const data = await res.json();
-                user = data.data;
-
-                const subscriptionRes = await fetch("/api/user/subscriptions/get");
-                if (subscriptionRes.ok) {
-                    const subscriptionData = await subscriptionRes.json();
-                    subscriptions = subscriptionData.data.result.items || [];
-                    subscriptionCount = subscriptions.length;
-                }
+                await loadUserData();
             }
         } catch (err) {
             error = "Failed to load user data. Please try again later.";
         } finally {
             isLoading = false;
+        }
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('refresh') === 'true') {
+            window.history.replaceState({}, '', window.location.pathname);
+            setTimeout(async () => {
+                await loadUserData();
+            }, 500);
         }
     });
 
@@ -115,6 +135,81 @@
         deleteConfirmationText = "";
         error = "";
     }
+
+    async function handleUpgrade() {
+        try {
+            isUpgradeLoading = true;
+            const response = await fetch('/api/user/subscriptions/checkout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to create checkout session');
+            }
+
+            const { data } = await response.json();
+            checkoutId = data.checkoutId;
+            
+            window.open(data.url, '_blank');
+            startCheckoutStatusCheck();
+        } catch (err) {
+            error = "Failed to start upgrade process. Please try again.";
+            console.error('Upgrade error:', err);
+        } finally {
+            isUpgradeLoading = false;
+        }
+    }
+
+    async function checkCheckoutStatus() {
+        if (!checkoutId) return;
+
+        try {
+            const response = await fetch(`/api/user/subscriptions/checkout/${checkoutId}`);
+            const { data, error: checkoutError } = await response.json();
+
+            if (checkoutError) {
+                throw new Error(checkoutError);
+            }
+
+            if (data.status === 'succeeded') {
+                clearInterval(checkoutInterval);
+                checkoutInterval = null;
+
+                await fetch("/api/user/profile/limit", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ option: "upgrade" })
+                });
+                
+                success = "Your account has been successfully upgraded to Pro! 🎉";
+                await loadUserData();
+                checkoutId = null;
+            }
+        } catch (err) {
+            console.error('Error checking checkout status:', err);
+            clearInterval(checkoutInterval);
+            checkoutInterval = null;
+            error = "There was an issue checking your payment status. Please contact support if the problem persists.";
+        }
+    }
+
+    function startCheckoutStatusCheck() {
+        if (checkoutInterval) {
+            clearInterval(checkoutInterval);
+        }
+        
+        checkoutInterval = setInterval(checkCheckoutStatus, 10000);
+    }
+
+    onDestroy(() => {
+        if (checkoutInterval) {
+            clearInterval(checkoutInterval);
+        }
+    });
 </script>
 
 <Navbar />
@@ -166,7 +261,7 @@
                 </Card.Content>
             </Card.Root>
 
-            {#if subscriptionCount > 0}
+            {#if user.accountType === 'Premium'}
                 <Card.Root class="mb-6">
                     <Card.Header>
                         <Card.Title>Subscriptions</Card.Title>
@@ -181,6 +276,41 @@
                                     View All Subscriptions
                                     <i class="ri-arrow-right-line ml-1"></i>
                                 </a>
+                            </div>
+                        </div>
+                    </Card.Content>
+                </Card.Root>
+            {:else}
+                <Card.Root class="mb-6">
+                    <Card.Header>
+                        <Card.Title>Upgrade to Pro</Card.Title>
+                        <Card.Description>Unlock unlimited access to all AI models and features</Card.Description>
+                    </Card.Header>
+                    <Card.Content>
+                        <div class="flex items-center justify-between p-4 bg-yellow-500/5 border border-yellow-500/20 rounded-xl">
+                            <div class="flex-1">
+                                <h3 class="font-medium text-yellow-700">Ready to upgrade?</h3>
+                                <p class="text-sm opacity-80 pb-4">Get unlimited access to all AI models for just $5/month</p>
+                                <ul class="text-xs space-y-1 opacity-70 mb-4">
+                                    <li>• Unlimited API usage</li>
+                                    <li>• Priority support</li>
+                                    <li>• All premium features</li>
+                                </ul>
+                                <Button onclick={handleUpgrade} class="bg-yellow-500 hover:bg-yellow-600 text-white" disabled={isUpgradeLoading}>
+                                    {#if isUpgradeLoading}
+                                        <i class="ri-loader-2-line animate-spin"></i>
+                                        Processing...
+                                    {:else if checkoutId}
+                                        <i class="ri-time-line"></i>
+                                        Checking payment status...
+                                    {:else}
+                                        Upgrade to Pro
+                                    {/if}
+                                </Button>
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-2xl font-bold text-yellow-600">$5</div>
+                                <div class="text-xs opacity-60">/month</div>
                             </div>
                         </div>
                     </Card.Content>

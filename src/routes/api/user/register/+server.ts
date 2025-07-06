@@ -75,15 +75,25 @@ export const POST: RequestHandler = async ({ request }) => {
       }).then(async () => {
         db.collection("users").requestVerification(email);
       });
-    })
+    }).catch((error) => {
+      console.error('Registration error:', error);
+      return new Response(JSON.stringify({ error: "Failed to register user." }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    });
 
     return new Response(JSON.stringify({ success: true }), {
       status: 201,
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (e: any) {
-    return new Response(JSON.stringify({ error: e.response.message }), {
-      status: e.response.status,
+    console.error('Registration error:', e);
+    const errorMessage = e?.response?.message || e?.message || 'An unexpected error occurred during registration.';
+    const statusCode = e?.response?.status || 500;
+    
+    return new Response(JSON.stringify({ error: errorMessage }), {
+      status: statusCode,
       headers: { 'Content-Type': 'application/json' }
     });
   }

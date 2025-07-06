@@ -4,6 +4,7 @@
     import Button from "$lib/components/ui/button/button.svelte";
     import Input from "$lib/components/ui/input/input.svelte";
     import { onMount } from "svelte";
+    import Checkbox from "$lib/components/ui/checkbox/checkbox.svelte";
 
     let name = "";
     let username = "";
@@ -17,6 +18,7 @@
     let error = "";
     let success = "";
     let isValid = false;
+    let termsAccepted = false;
 
     onMount(async () => {
         const res = await fetch("/api/user/valid");
@@ -32,6 +34,18 @@
         loading = true;
         error = "";
         success = "";
+
+        if (password !== passwordConfirm) {
+            error = "Passwords do not match.";
+            loading = false;
+            return;
+        }
+
+        if (password.length < 8) {
+            error = "Password must be at least 8 characters long.";
+            loading = false;
+            return;
+        }
 
         const res = await fetch("/api/user/register", {
             method: "POST",
@@ -103,13 +117,19 @@
                             {success}
                         </div>
                     {/if}
-
                     <div class="pt-2">
-                        <Button type="submit" class="w-full" disabled={loading || !name || !username || !email || !password || !passwordConfirm || password !== passwordConfirm}>
+                        <Button type="submit" class="w-full" disabled={loading || !name || !username || !email || !password || !passwordConfirm || password !== passwordConfirm || !termsAccepted}>
                             {loading ? "Signing up..." : "Sign Up"}
                         </Button>
                     </div>
                 </form>
+
+                <div class="space-y-1">
+                    <label for="terms" class="flex items-center justify-center">
+                        <Checkbox id="terms" bind:checked={termsAccepted} required class="mr-2" />
+                        <span class="text-sm">I agree to the <a href="/terms" class="font-medium underline">Terms of Service</a> and <a href="/privacy" class="font-medium underline">Privacy Policy</a>.</span>
+                    </label>
+                </div>
 
                 <p class="text-center text-sm">
                     Already have an account?{" "}

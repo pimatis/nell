@@ -44,6 +44,7 @@
     let showUpdatesDialog = false;
     let updates: Array<{id: string, title: string, description: string, created: string}> = [];
     let quickActionsDropdownOpen = false;
+    let showPremiumDialog = false;
     let defaultPrompts = [
         {
             title: "How does artificial intelligence work?",
@@ -299,7 +300,7 @@
         if (!input.trim() || isLoading) return;
 
         if (!canUseChat()) {
-            alert('You need to have a Premium account and verify your email to use this chat feature!');
+            showPremiumDialog = true;
             return;
         }
 
@@ -359,7 +360,7 @@
         if (!input.trim() || isLoading) return;
 
         if (!canUseChat()) {
-            alert('You need to have a Premium account and verify your email address to use this chat feature!');
+            showPremiumDialog = true;
             return;
         }
 
@@ -738,3 +739,24 @@
         {/if}
     </div>
 </Vault>
+
+<!-- Premium Account Required Dialog -->
+<Dialog.Root bind:open={showPremiumDialog}>
+    <Dialog.Content class="max-w-md">
+        <Dialog.Header>
+            <Dialog.Title>Premium Account Required</Dialog.Title>
+            <Dialog.Description>
+                You need to have a Premium account and verify your email address to use this chat feature!
+            </Dialog.Description>
+        </Dialog.Header>
+
+        <Dialog.Footer class="mt-4 flex gap-2">
+            <Dialog.Close>
+                <Button variant="secondary">Cancel</Button>
+            </Dialog.Close>
+            <Button onclick={() => { showPremiumDialog = false; goto('/profile'); }}>
+                Go to Profile
+            </Button>
+        </Dialog.Footer>
+    </Dialog.Content>
+</Dialog.Root>

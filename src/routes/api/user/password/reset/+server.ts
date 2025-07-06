@@ -18,8 +18,12 @@ export const POST: RequestHandler = async ({ request }) => {
             headers: { "Content-Type": "application/json" }
         });
     } catch (e: any) {
-        return new Response(JSON.stringify({ error: e.response.message }), {
-            status: e.response.status,
+        console.error('Password reset error:', e);
+        const errorMessage = e?.response?.message || e?.message || 'An unexpected error occurred while requesting password reset.';
+        const statusCode = e?.response?.status || 500;
+        
+        return new Response(JSON.stringify({ error: errorMessage }), {
+            status: statusCode,
             headers: { "Content-Type": "application/json" }
         });
     }

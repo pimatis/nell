@@ -20,11 +20,14 @@ export const GET: RequestHandler = async ({ request }) => {
             headers: { "Content-Type": "application/json" }
         });
     } catch (error: any) {
+        console.error('User info error:', error);
+        const errorMessage = error?.response?.message || error?.message || 'An unexpected error occurred while fetching user info.';
+        const statusCode = error?.response?.status || 500;
+        
         return new Response(JSON.stringify({ 
-            error: "Internal server error",
-            details: error.message 
+            error: errorMessage
         }), {
-            status: 500,
+            status: statusCode,
             headers: { "Content-Type": "application/json" }
         });
     }

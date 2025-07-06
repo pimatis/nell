@@ -38,7 +38,7 @@
 		bind:this={ref}
 		data-slot="input"
 		class={cn(
-			"bg-secondary selection:bg-primary dark:bg-input/30 selection:text-primary-foreground placeholder:opacity-20 shadow-xs flex h-9 w-full min-w-0 rounded-md px-4 py-2.5 text-base outline-none transition-[color,box-shadow] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+			"bg-secondary selection:bg-primary dark:bg-input/30 selection:text-white/50 placeholder:opacity-20 shadow-xs flex h-9 w-full min-w-0 rounded-md px-4 py-2.5 text-base outline-none transition-[color,box-shadow] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
 			"aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
 			className
 		)}

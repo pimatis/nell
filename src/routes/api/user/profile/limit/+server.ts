@@ -25,7 +25,7 @@ export const POST: RequestHandler = async ({ request }) => {
         } else if (data.option === "downgrade") {
             await db.collection("users").update(`${user?.id}`, {
                 accountType: "Free",
-                limit: 50,
+                limit: 0,
             });
         } else {
             return new Response(JSON.stringify({ error: "Invalid option" }), {
