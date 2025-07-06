@@ -35,8 +35,27 @@
         error = "";
         success = "";
 
-        if (password !== passwordConfirm) {
-            error = "Passwords do not match.";
+        if (!name || !username || !email || !password || !passwordConfirm) {
+            error = "All fields are required.";
+            loading = false;
+            return;
+        }
+
+        if (!termsAccepted) {
+            error = "You must accept the terms and conditions.";
+            loading = false;
+            return;
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            error = "Please enter a valid email address.";
+            loading = false;
+            return;
+        }
+
+        if (username.length < 3) {
+            error = "Username must be at least 3 characters long.";
             loading = false;
             return;
         }
@@ -47,29 +66,50 @@
             return;
         }
 
-        const res = await fetch("/api/user/register", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                name,
-                username,
-                email,
-                password,
-                passwordConfirm,
-                accountType,
-                limit,
-                usageCount
-            })
-        });
+        if (password !== passwordConfirm) {
+            error = "Passwords do not match.";
+            loading = false;
+            return;
+        }
 
-        const data = await res.json();
-        loading = false;
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/;
+        if (!passwordRegex.test(password)) {
+            error = "Password must contain at least one uppercase letter, one lowercase letter, and one number.";
+            loading = false;
+            return;
+        }
 
-        if (res.ok) {
-            success = "Registration successful! Redirecting to login page...";
-            goto("/login");
-        } else {
-            error = data.error || "An error occurred.";
+        try {
+            const res = await fetch("/api/user/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: name.trim(),
+                    username: username.toLowerCase().trim(),
+                    email: email.toLowerCase().trim(),
+                    password,
+                    passwordConfirm,
+                    accountType,
+                    limit,
+                    usageCount
+                })
+            });
+
+            const data = await res.json();
+            loading = false;
+
+            if (res.ok) {
+                success = "Registration successful! Please check your email for verification. Redirecting to login page...";
+                setTimeout(() => {
+                    goto("/login");
+                }, 2000);
+            } else {
+                error = data.error || "An error occurred during registration.";
+            }
+        } catch (err) {
+            console.error("Registration error:", err);
+            error = "An error occurred during registration. Please try again.";
+            loading = false;
         }
     }
 </script>
@@ -118,7 +158,7 @@
                         </div>
                     {/if}
                     <div class="pt-2">
-                        <Button type="submit" class="w-full" disabled={loading || !name || !username || !email || !password || !passwordConfirm || password !== passwordConfirm || !termsAccepted}>
+                        <Button type="submit" class="w-full" disabled={loading || !name || !username || !email || !password || !passwordConfirm || password !== passwordConfirm || password.length < 8 || !termsAccepted}>
                             {loading ? "Signing up..." : "Sign Up"}
                         </Button>
                     </div>

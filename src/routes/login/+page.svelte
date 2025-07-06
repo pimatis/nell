@@ -27,12 +27,31 @@
       error = "";
       success = "";
 
+      if (!email || !password) {
+          error = "Email and password are required.";
+          loading = false;
+          return;
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+          error = "Please enter a valid email address.";
+          loading = false;
+          return;
+      }
+
+      if (password.length < 8) {
+          error = "Password must be at least 8 characters long.";
+          loading = false;
+          return;
+      }
+
       try {
         const res = await fetch("/api/user/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              email,
+              email: email.toLowerCase().trim(),
               password
             })
         });
@@ -42,7 +61,9 @@
         if (res.ok) {
             success = "Login successful! Redirecting...";
             localStorage.setItem("pocketbase_auth", JSON.stringify(data.data));
-            goto("/");
+            setTimeout(() => {
+                goto("/");
+            }, 1000);
         } else {
             error = data.error || "Invalid email or password";
         }
