@@ -75,8 +75,7 @@ bun install
 Create a `.env` file in the root directory and configure the following environment variables:
 
 ```env
-VITE_APP_API_KEY=your_api_key_here
-VITE_APP_API_URL=https://api.example.com
+VITE_APP_API_URL=https://api.paxsenix.biz.id/v1/chat/completions
 ```
 
 **Note**: This project is designed to work without server-side configuration. All chat data is stored locally in your browser.
