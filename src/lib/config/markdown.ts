@@ -25,7 +25,7 @@ type Token = {
 
 const styles = {
   container:
-    "prose prose-slate dark:prose-invert max-w-none prose-headings:font-medium prose-headings:tracking-tight prose-headings:text-white text-white",
+    "prose prose-slate max-w-none prose-headings:font-medium prose-headings:tracking-tight prose-headings:text-white text-white",
   heading: (level: number) => {
     const base = "scroll-m-20 tracking-tight text-white";
     const sizes = [
@@ -48,10 +48,19 @@ const styles = {
     ol: "my-6 ml-6 list-decimal [&>li]:mt-2 marker:text-white",
     li: "[&>p]:m-0 [&>ul]:mt-2 [&>ol]:mt-2 text-white",
   },
-  table:
-    "my-6 w-full overflow-y-auto text-white [&_th]:px-4 [&_th]:py-2 [&_td]:px-4 [&_td]:py-2 [&_th]:bg-secondary/20 [&_tr]:border-b [&_tr]:hover:bg-secondary/10 [&_th]:text-white",
-  taskList:
-    "my-6 space-y-2 text-white [&>li]:flex [&>li]:items-center [&>li]:space-x-2 [&_input]:h-4 [&_input]:w-4 [&_input]:accent-primary",
+  table: {
+    container: "my-6 w-full overflow-x-auto rounded-lg border border-bg-secondary",
+    table: "min-w-full divide-y divide-bg-secondary",
+    thead: "bg-bg-secondary",
+    th: "px-6 py-3 text-xs font-medium text-bg-secondary uppercase tracking-wider",
+    tbody: "bg-white divide-y divide-bg-secondary",
+    tr: "hover:bg-secondary/10",
+    td: "px-6 py-4 whitespace-nowrap text-sm text-bg-secondary",
+  },
+  taskList: {
+    container: "my-6 space-y-2 text-white",
+    item: "flex items-center space-x-2 [&_input]:h-4 [&_input]:w-4 [&_input]:accent-primary",
+  },
   hr: "my-8 border-t border-white/20",
   link: "font-medium text-white underline underline-offset-4 hover:text-white/80 transition-colors",
   img: "my-4 rounded-lg border border-secondary/30 shadow-sm",
@@ -143,14 +152,14 @@ export function renderMarkdown(markdown: string): string {
     const taskMatch = line.match(/^\s*[-*] \[(.)\]\s+(.+)$/);
     if (taskMatch) {
       if (!inTaskList) {
-        html += '<ul class="space-y-2 my-4">';
+        html += `<ul class="${styles.taskList.container}">`;
         inTaskList = true;
       }
       const checked = taskMatch[1].toLowerCase() === "x";
       const content = taskMatch[2];
-      html += `<li class="${styles.taskList.replace("[&>li]:", "")}">
+      html += `<li class="${styles.taskList.item}">
         <input type="checkbox" ${checked ? "checked" : ""} disabled
-               class="h-4 w-4 rounded border-primary text-primary focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50">
+               class="rounded border-primary text-primary focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50">
         <span class="${checked ? "line-through opacity-50" : ""}">
           ${parseInlineMarkdown(content)}
         </span>
@@ -357,10 +366,10 @@ function parseInlineMarkdown(text: string): string {
 function escapeHtml(unsafe: string): string {
   if (!unsafe) return "";
   return unsafe
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
+    .replace(/&/g, "&")
+    .replace(/</g, "<")
+    .replace(/>/g, ">")
+    .replace(/"/g, "&#34;")
     .replace(/'/g, "&#039;");
 }
 
@@ -368,22 +377,19 @@ function renderTable(rows: string[], alignments: string[]): string {
   if (rows.length === 0) return "";
 
   const headerRow = rows[0]
-    .split("|")
-    .map((cell) => cell.trim())
+    .split("|").map((cell) => cell.trim())
     .filter(Boolean);
   const dataRows = rows.slice(1).map((row) =>
     row
-      .split("|")
-      .map((cell) => cell.trim())
+      .split("|").map((cell) => cell.trim())
       .filter(Boolean)
   );
 
   let tableHtml = `
-    <div class="my-6 overflow-x-auto rounded-lg border border-bg-secondary">
-      <table class="min-w-full divide-y divide-bg-secondary">
-        <thead class="bg-bg-secondary">
-          <tr>
-  `;
+    <div class="${styles.table.container}">
+      <table class="${styles.table.table}">
+        <thead class="${styles.table.thead}">
+          <tr>`;
 
   headerRow.forEach((cell, i) => {
     const align = alignments[i] || "left";
@@ -394,7 +400,7 @@ function renderTable(rows: string[], alignments: string[]): string {
           ? "text-right"
           : "text-left";
     tableHtml += `
-      <th class="px-6 py-3 ${alignClass} text-xs font-medium text-bg-secondary uppercase tracking-wider">
+      <th class="${styles.table.th} ${alignClass}">
         ${parseInlineMarkdown(cell)}
       </th>
     `;
@@ -403,12 +409,12 @@ function renderTable(rows: string[], alignments: string[]): string {
   tableHtml += `
         </tr>
       </thead>
-      <tbody class="bg-white divide-y divide-bg-secondary">
+      <tbody class="${styles.table.tbody}">
   `;
 
   dataRows.forEach((row, rowIndex) => {
     const rowBg = rowIndex % 2 === 0 ? "bg-white" : "bg-bg-secondary";
-    tableHtml += `<tr class="${rowBg}">`;
+    tableHtml += `<tr class="${styles.table.tr} ${rowBg}">`;
 
     row.forEach((cell, i) => {
       const align = alignments[i] || "left";
@@ -419,7 +425,7 @@ function renderTable(rows: string[], alignments: string[]): string {
             ? "text-right"
             : "text-left";
       tableHtml += `
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-bg-secondary ${alignClass}">
+        <td class="${styles.table.td} ${alignClass}">
           ${parseInlineMarkdown(cell)}
         </td>
       `;

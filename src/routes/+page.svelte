@@ -10,7 +10,7 @@
     import { thinkingMessages } from "$lib/config/messages";
     import { onMount } from "svelte";
     import { goto } from "$app/navigation";
-    import Vault from "../components/Vault.svelte";
+    import Drawer from "../components/Drawer.svelte";
     import { ChatDB, type ChatHistory } from "$lib/db/chatdb";
 
     const chatDB = new ChatDB();
@@ -32,6 +32,7 @@
     let chatHistory: ChatHistory[] = [];
     let currentChatId: string | null = null;
     let isDeletingChat = false;
+    let showDeleteAllChatsDialog = false;
 
     $: filteredModels = models.filter(model =>
         model.name.toLowerCase().includes(modelSearchQuery.toLowerCase())
@@ -136,7 +137,7 @@
     };
 
     const deleteAllChats = async () => {
-        if (!confirm('Are you sure you want to delete all chat history? This action cannot be undone.')) return;
+        showDeleteAllChatsDialog = true;
 
         isDeletingChat = true;
         try {
@@ -362,7 +363,7 @@
             </div>
             {#if messages.length === 0}
             <div class="flex flex-col items-center justify-center h-[60vh] text-center px-4">
-                <img src="https://www.upload.ee/image/18296072/nell-mascot-whitee.png" alt="Nell Logo" class="w-16 mb-4" />
+                <!-- <img src="https://www.upload.ee/image/18296072/nell-mascot-whitee.png" alt="Nell Logo" class="w-16 mb-4" /> -->
                 <h2 class="text-2xl font-semibold mb-1">Ask Nell anything</h2>
                 <p class="text-sm opacity-80">Your AI assistant powered by multiple models</p>
                 <div class="flex flex-col sm:flex-col md:flex-col lg:flex-row gap-4 text-xs mt-6">
@@ -469,7 +470,7 @@
                                 <ScrollArea class="h-[300px] w-full">
                                     <div class="space-y-2">
                                         {#each filteredModels as model}
-                                            <div class="flex items-center space-x-3 p-2.5 rounded-md bg-secondary cursor-pointer" class:bg-primary-50={selectedModel.id === model.id} on:click={() => { selectedModel = model; showModelDialog = false; }} on:keydown={(e) => e.key === 'Enter' && (selectedModel = model, showModelDialog = false)} role="button" tabindex="0">
+                                            <div class="flex items-center space-x-3 p-2.5 rounded-lg bg-secondary cursor-pointer" class:bg-primary-50={selectedModel.id === model.id} on:click={() => { selectedModel = model; showModelDialog = false; }} on:keydown={(e) => e.key === 'Enter' && (selectedModel = model, showModelDialog = false)} role="button" tabindex="0">
                                                 <div class="flex-1">
                                                     <h4 class="font-medium text-sm">{model.name}</h4>
                                                 </div>
@@ -515,8 +516,8 @@
     </div>
 </div>
 
-<!-- Chat History Vault -->
-<Vault bind:isOpen={showChatHistory} on:close={() => showChatHistory = false}>
+<!-- Chat History Drawer -->
+<Drawer bind:isOpen={showChatHistory} on:close={() => showChatHistory = false}>
     <div class="space-y-4">
         <div class="flex items-center justify-between">
             <h3 class="text-lg font-semibold">Chat History</h3>
@@ -527,7 +528,7 @@
                 {chatHistory.length} conversation{chatHistory.length !== 1 ? 's' : ''} found
             </div>
             {#if chatHistory.length > 0}
-                <Button variant="outline" size="sm" class="text-destructive hover:text-destructive" onclick={deleteAllChats} disabled={isDeletingChat}>
+                <Button variant="outline" size="sm" class="text-destructive hover:text-destructive" onclick={() => showDeleteAllChatsDialog = true} disabled={isDeletingChat}>
                     <i class="ri-delete-bin-line mr-2"></i>
                     Delete All
                 </Button>
@@ -565,10 +566,7 @@
                                             Current
                                         </div>
                                     {/if}
-                                    <Button variant="ghost" size="icon" class="h-8 w-8 text-destructive/70 hover:text-destructive" 
-                                            onclick={(e) => { e.stopPropagation(); deleteChat(chat.id); }} 
-                                            disabled={isDeletingChat} 
-                                            title="Delete chat">
+                                    <Button variant="ghost" size="icon" class="h-8 w-8 text-destructive/70 hover:text-destructive" onclick={(e) => { e.stopPropagation(); deleteChat(chat.id); }} disabled={isDeletingChat} title="Delete chat">
                                         <i class="ri-delete-bin-line"></i>
                                     </Button>
                                 </div>
@@ -579,4 +577,22 @@
             </div>
         </ScrollArea>
     </div>
-</Vault>
+</Drawer>
+
+<Dialog.Root bind:open={showDeleteAllChatsDialog}>
+    <Dialog.Portal>
+        <Dialog.Overlay />
+        <Dialog.Content>
+            <Dialog.Header>
+                <Dialog.Title>Delete All Chats</Dialog.Title>
+                <Dialog.Description>
+                    Are you sure you want to delete all chat history? This action cannot be undone.
+                </Dialog.Description>
+            </Dialog.Header>
+            <Dialog.Footer>
+                <Button variant="outline" onclick={() => showDeleteAllChatsDialog = false}>Cancel</Button>
+                <Button variant="destructive" onclick={deleteAllChats}>Delete All</Button>
+            </Dialog.Footer>
+        </Dialog.Content>
+    </Dialog.Portal>
+</Dialog.Root>

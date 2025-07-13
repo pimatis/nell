@@ -1,6 +1,6 @@
 # Nell
 
-A modern, anonymous AI chat platform that provides unified access to multiple AI providers through a single interface. Built with SvelteKit and TailwindCSS, offering a seamless and privacy-focused experience for AI interactions with local chat management and no data collection.
+A modern, free ve anonymous AI chat platform that provides unified access to multiple AI providers through a single interface. Built with SvelteKit and TailwindCSS, offering a seamless and privacy-focused experience for AI interactions with local chat management and no data collection.
 
 ## 🚀 Features
 
